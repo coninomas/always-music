@@ -42,6 +42,8 @@ const consultarRut = async (rut) => {
         } else {
             console.log("Alumno no encontrado");
         }
+    } catch (error) {
+        console.error("Error al consultar por rut:", error.message);
     } finally {
         client.release();
     }
@@ -53,6 +55,8 @@ const consultarTabla = async () => {
     try {
         const resultado = await client.query("SELECT * FROM usuarios");
         console.log("Alumnos registrados:", resultado.rows);
+    } catch (error) {
+        console.error("Error al obtener todos los alumnos:", error.message);
     } finally {
         client.release();
     }
@@ -68,10 +72,13 @@ const actualizarUsuario = async (nombre, rut, curso, nivel) => {
             [nombre, rut, curso, nivel]
         );
         console.log("Alumno actualizado:", resultado.rows[0]);
+    } catch (error) {
+        console.error("Error al actualizar el Alumno:", error.message);
     } finally {
         client.release();
     }
 }; //Ejecutar node index.js editar 'Brian May','12.345.678-9', 'Guitarra', '10'
+
 
 //5. Crear una función asíncrona para eliminar el registro de un estudiante de la base de datos.
 const eliminarUsuario = async (rut) => {
@@ -86,29 +93,93 @@ const eliminarUsuario = async (rut) => {
         } else {
             console.log("Alumno no registrado");
         }
+    }
+    catch (error) {
+        console.error("Error al eliminar el Alumno:", error.message);
     } finally {
         client.release();
     }
-}; //Ejecutar node index.js eliminar '12.345.678-9'
+};//Ejecutar node index.js eliminar '12.345.678-9'
 
 
 // Comandos
-const [, , cmd, ...args] = process.argv;
-(async () => {
-    switch (cmd) {
-        case "nuevo": agregarUsuario(args[0], args[1], args[2], args[3]);
-            break;
-        case "consulta": consultarTabla();
-            break;
-        case "rut":
-            await consultarRut(args[0], args[1], args[2], args[3]);
-            break;
-        case "editar": actualizarUsuario(args[0], args[1], args[2], args[3]);
-            break;
-        case "eliminar": eliminarUsuario(args[0]);
-            break;
-        default:
-            console.info("Comando no válido");
+const comandos = async () => {
+    try {
+        switch (funcion) {
+            case "nuevo": agregarUsuario(args[0], args[1], args[2], args[3]);
+                break;
+            case "consulta": consultarTabla();
+                break;
+            case "rut":
+                await consultarRut(args[0], args[1], args[2], args[3]);
+                break;
+            case "editar": actualizarUsuario(args[0], args[1], args[2], args[3]);
+                break;
+            case "eliminar": eliminarUsuario(args[0]);
+                break;
+            default:
+                console.info("Comando no válido");
+                break;
+        }
+    } catch (error) {
+        console.error("Error al ejecutar:", error.message);
+    } finally {
+        await pool.end();
     }
-})();
+};
+comandos();
 
+
+/*
+
+console.log(" ");
+console.log("***** Academy Always Music *****");
+
+// Obtener los parámetros de entrada mediante argumentos: Cuando ejecutas el comando: node server.js registrar 12345678-9 "Juan Pernia" g70 7,
+const funcion = process.argv[2];
+const rut = process.argv[3];
+const nombre = process.argv[4];
+const curso = process.argv[5];
+const nivel = process.argv[6];
+
+// Registrar un alumno nuevo
+const nuevoAlumno = async ({ rut, nombre, curso, nivel }) => {
+  try {
+    // Usar un objeto para la consulta y parametrizar los valores
+    const query = {
+      text: `INSERT INTO alumnos (rut, nombre, curso, nivel) VALUES ($1, $2, $3, $4) RETURNING *`,
+      values: [rut, nombre, curso, nivel]
+    };
+    const res = await pool.query(query);
+    console.log(`Alumno ${nombre} rut: ${rut} fue registrado con éxito!`);
+    console.log("Alumno Registrado: ", res.rows[0]);
+  } 
+};
+
+// Consultar un alumno
+const consultaRut = async ({ rut }) => {
+  try {
+    // Usar un objeto para la consulta y parametrizar los valores
+    const query = {
+      text: `SELECT * FROM alumnos WHERE rut=$1`,
+      values: [rut]
+    };
+    const res = await pool.query(query);
+    if (res.rows.length > 0) {
+      console.log("Alumno consultado: ", res.rows[0]);
+    } else {
+      console.log(`No se encontró ningún alumno con el rut ${rut}`);
+    }
+  } 
+  }
+};
+
+// Obtener todos los alumnos registrados
+
+
+// Actualizar datos de un alumno en la base de datos
+
+
+// Eliminar un alumno de la base de datos
+
+*/
